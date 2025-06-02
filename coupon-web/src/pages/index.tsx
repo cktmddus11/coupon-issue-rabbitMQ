@@ -1,0 +1,1 @@
+// 이 파일은 App Router로 이동되었습니다. src/app/page.tsx를 참조하세요.

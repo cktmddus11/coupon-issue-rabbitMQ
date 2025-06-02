@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.1.5'
+    id 'io.spring.dependency-management' version '1.1.3'
+}
+
+bootJar {
+    enabled = true
+}
+
+dependencies {
+    // Next.js 프론트엔드는 별도 관리하므로 최소한의 의존성만 포함
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+}
+
+// Next.js 프론트엔드 빌드를 위한 설정은 package.json에서 관리

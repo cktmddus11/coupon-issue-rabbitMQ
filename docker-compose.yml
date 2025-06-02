@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # RabbitMQ 서비스
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP 프로토콜 포트
+      - "15672:15672" # 관리 UI 포트
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - coupon-network
+
+  # Spring Boot 백엔드 API 서비스
+  coupon-api:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+    container_name: coupon-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - coupon-network
+
+  # Next.js 프론트엔드 서비스
+  coupon-web:
+    build:
+      context: ./coupon-web
+      dockerfile: ../docker/web/Dockerfile
+    container_name: coupon-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://coupon-api:8080
+    depends_on:
+      - coupon-api
+    networks:
+      - coupon-network
+
+volumes:
+  rabbitmq_data:
+    driver: local
+
+networks:
+  coupon-network:
+    driver: bridge

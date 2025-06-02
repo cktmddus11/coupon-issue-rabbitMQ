@@ -1,0 +1,5 @@
+rootProject.name = 'coupon-issue-rabbitMQ'
+
+include 'coupon-api'       // 백엔드 API 모듈
+include 'coupon-core'      // 공통 코어 모듈 (엔티티, 서비스 등)
+include 'coupon-web'       // 프론트엔드 모듈 (필요 시)
