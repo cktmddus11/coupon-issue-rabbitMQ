@@ -6,6 +6,7 @@ import com.example.coupon.entity.Coupon;
 import com.example.coupon.entity.CouponStatus;
 import com.example.coupon.repository.CouponRepository;
 import com.example.coupon.service.RabbitMQSender;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeoutException;
 @RestController
 @RequestMapping("/api/coupons")
 @RequiredArgsConstructor
+@Tag(name = "쿠폰 관리", description = "쿠폰 발급 및 조회 API")
 public class CouponApiController {
 
     private final RabbitMQSender rabbitMQSender;

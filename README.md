@@ -37,7 +37,7 @@ RabbitMQ의 메시지 큐를 활용하여 비동기적으로 쿠폰을 발급하
 
 ```bash
 # 스크립트로 실행
-./start-docker.sh
+./scripts/docker/start-docker.sh
 
 # 또는 명령어로 직접 실행
 docker-compose up -d
@@ -47,7 +47,7 @@ docker-compose up -d
 
 ```bash
 # 스크립트로 실행
-./stop-docker.sh
+./scripts/docker/stop-docker.sh
 
 # 또는 명령어로 직접 실행
 docker-compose down
@@ -57,6 +57,7 @@ docker-compose down
 
 - 프론트엔드: http://localhost:3000
 - 백엔드 API: http://localhost:8080
+- SWAGGER :  http://localhost:8080/swagger-ui.html
 - RabbitMQ 관리 콘솔: http://localhost:15672 (guest/guest)
 
 ## 수동으로 실행하기
@@ -150,7 +151,3 @@ npm run dev
 
 Docker Compose를 사용하여 모든 서비스를 컨테이너화하여 배포합니다.
 백엔드와 프론트엔드 모두 컨테이너 내에서 프로덕션 모드로 실행됩니다.
-
-## 라이센스
-
-MIT

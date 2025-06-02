@@ -24,8 +24,8 @@ services:
   # Spring Boot 백엔드 API 서비스
   coupon-api:
     build:
-      context: .
-      dockerfile: ./docker/api/Dockerfile
+      context: ./
+      dockerfile: scripts/docker/api/Dockerfile
     container_name: coupon-api
     ports:
       - "8080:8080"
@@ -44,8 +44,8 @@ services:
   # Next.js 프론트엔드 서비스
   coupon-web:
     build:
-      context: ./coupon-web
-      dockerfile: ../docker/web/Dockerfile
+      context: ./
+      dockerfile: scripts/docker/web/Dockerfile
     container_name: coupon-web
     ports:
       - "3000:3000"

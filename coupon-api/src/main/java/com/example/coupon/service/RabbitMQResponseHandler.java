@@ -31,6 +31,9 @@ public class RabbitMQResponseHandler {
     // 요청 ID와 CompletableFuture를 연결하는 맵
     private final Map<String, CompletableFuture<CouponResponse>> pendingRequests = new ConcurrentHashMap<>();
     
+    // 요청 시간을 저장하는 맵
+    private final Map<String, Long> requestTimestamps = new ConcurrentHashMap<>();
+    
     // 요청 타임아웃을 관리하는 스케줄러
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     
@@ -54,15 +57,19 @@ public class RabbitMQResponseHandler {
     private void cleanupTimedOutRequests() {
         long now = System.currentTimeMillis();
         
-        // 타임아웃된 요청을 맵에서 제거
-        pendingRequests.entrySet().removeIf(entry -> {
-            CompletableFuture<CouponResponse> future = entry.getValue();
-            boolean isTimedOut = now - entry.getValue().hashCode() > REQUEST_TIMEOUT_MS;
+        // 타임아웃된 요청을 찾아서 제거
+        requestTimestamps.entrySet().removeIf(entry -> {
+            String correlationId = entry.getKey();
+            long requestTime = entry.getValue();
+            boolean isTimedOut = (now - requestTime) > REQUEST_TIMEOUT_MS;
             
-            if (isTimedOut && !future.isDone()) {
-                log.warn("요청 타임아웃: {}", entry.getKey());
-                future.completeExceptionally(
-                        new RuntimeException("요청 처리 시간이 초과되었습니다."));
+            if (isTimedOut) {
+                CompletableFuture<CouponResponse> future = pendingRequests.remove(correlationId);
+                if (future != null && !future.isDone()) {
+                    log.warn("요청 타임아웃: {}", correlationId);
+                    future.completeExceptionally(
+                            new RuntimeException("요청 처리 시간이 초과되었습니다."));
+                }
             }
             
             return isTimedOut;
@@ -78,9 +85,8 @@ public class RabbitMQResponseHandler {
     public void registerPendingRequest(String correlationId, 
                                       CompletableFuture<CouponResponse> future) {
         pendingRequests.put(correlationId, future);
-        
-        // 요청 정보에 현재 시간 저장 (타임아웃 관리용)
-        future.hashCode(); // hashCode를 타임스탬프로 활용
+        requestTimestamps.put(correlationId, System.currentTimeMillis());
+        log.debug("요청 등록 - CorrelationId: {}", correlationId);
     }
     
     /**
@@ -93,6 +99,8 @@ public class RabbitMQResponseHandler {
     public void handleCouponResponse(Message message) {
         String correlationId = message.getMessageProperties().getCorrelationId();
         
+        log.info("응답 수신 - CorrelationId: {}", correlationId);
+        
         if (correlationId == null) {
             log.warn("상관관계 ID가 없는 응답을 수신했습니다.");
             return;
@@ -100,6 +108,7 @@ public class RabbitMQResponseHandler {
         
         // 해당 요청 ID에 대한 CompletableFuture 조회
         CompletableFuture<CouponResponse> future = pendingRequests.remove(correlationId);
+        requestTimestamps.remove(correlationId);
         
         if (future == null) {
             log.warn("대기 중인 요청이 없는 응답을 수신했습니다: {}", correlationId);
@@ -109,14 +118,14 @@ public class RabbitMQResponseHandler {
         try {
             // 메시지 변환
             CouponResponse response = (CouponResponse) messageConverter.fromMessage(message);
-            log.info("쿠폰 발급 응답 수신 - 상관관계 ID: {}, 성공: {}", 
+            log.info("쿠폰 발급 응답 처리 완료 - 상관관계 ID: {}, 성공: {}", 
                     correlationId, response.isSuccess());
             
             // CompletableFuture 완료 처리
             future.complete(response);
             
         } catch (Exception e) {
-            log.error("응답 처리 중 오류 발생", e);
+            log.error("응답 처리 중 오류 발생 - CorrelationId: {}", correlationId, e);
             future.completeExceptionally(e);
         }
     }

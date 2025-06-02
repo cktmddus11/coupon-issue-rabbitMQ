@@ -26,6 +26,15 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  springdoc:
+    api-docs:
+      path: /v3/api-docs
+      enabled: true
+    swagger-ui:
+      path: /swagger-ui.html
+      enabled: true
+    show-actuator: true
         
   # H2 콘솔 설정  
   h2:
@@ -47,5 +56,5 @@ server:
 logging:
   level:
     com.example.coupon: DEBUG
-    org.springframework.amqp: INFO
+    org.springframework.amqp: DEBUG
     org.springframework.context.annotation: DEBUG # 빈 등록 과정 로깅
