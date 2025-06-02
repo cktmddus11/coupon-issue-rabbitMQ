@@ -1,124 +1,159 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { CouponRequest, Coupon } from "@/types/coupon";
-import { couponService } from "@/services/couponService";
-import CouponIssueForm from "@/components/CouponIssueForm";
-import CouponList from "@/components/CouponList";
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Ticket, Users, TrendingUp, Clock } from "lucide-react";
+import Link from "next/link";
 
-/**
- * 메인 페이지 컴포넌트
- * 쿠폰 발급 및 목록 조회 기능을 제공합니다.
- */
 export default function Home() {
-  // 쿠폰 목록 상태
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [userId, setUserId] = useState<string>("");
-
-  // 컴포넌트 마운트 시 기본 사용자 ID 설정
-  useEffect(() => {
-    // 로컬 스토리지에서 최근 사용자 ID 조회
-    const savedUserId = localStorage.getItem("lastUserId") || "";
-    setUserId(savedUserId);
-
-    // 저장된 사용자 ID가 있으면 쿠폰 목록 조회
-    if (savedUserId) {
-      fetchCoupons(savedUserId);
-    }
-  }, []);
-
-  // 쿠폰 목록 조회 함수
-  const fetchCoupons = async (id: string) => {
-    if (!id) return;
-
-    setLoading(true);
-    try {
-      const userCoupons = await couponService.getUserCoupons(id);
-      setCoupons(userCoupons);
-    } catch (error) {
-      console.error("쿠폰 목록 조회 실패:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 쿠폰 발급 요청 처리 함수
-  const handleCouponIssue = async (request: CouponRequest) => {
-    // 사용자 ID 저장
-    localStorage.setItem("lastUserId", request.userId);
-    setUserId(request.userId);
-
-    // 쿠폰 발급 요청
-    return couponService.issueCoupon(request);
-  };
-
-  // 쿠폰 발급 성공 시 처리 함수
-  const handleIssueSuccess = () => {
-    // 쿠폰 목록 다시 조회
-    fetchCoupons(userId);
-  };
+  const stats = [
+    {
+      title: "총 발급된 쿠폰",
+      value: "1,234",
+      description: "지난 30일간",
+      icon: Ticket,
+      trend: "+12%",
+    },
+    {
+      title: "활성 사용자",
+      value: "856",
+      description: "현재 활성 상태",
+      icon: Users,
+      trend: "+8%",
+    },
+    {
+      title: "사용률",
+      value: "68%",
+      description: "평균 쿠폰 사용률",
+      icon: TrendingUp,
+      trend: "+5%",
+    },
+    {
+      title: "대기 중인 요청",
+      value: "23",
+      description: "처리 대기 중",
+      icon: Clock,
+      trend: "-2%",
+    },
+  ];
 
   return (
-    <main className="container py-8">
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-primary-800">
-          RabbitMQ를 활용한 쿠폰 발급 시스템
-        </h1>
-        <p className="mt-2 text-gray-600">
-          RabbitMQ를 사용하여 비동기적으로 쿠폰을 발급하는 시스템입니다.
+    <div className="space-y-8">
+      {/* 헤더 */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">대시보드</h1>
+        <p className="text-muted-foreground">
+          RabbitMQ를 활용한 쿠폰 발급 시스템의 현황을 확인하세요.
         </p>
-      </header>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* 왼쪽: 쿠폰 발급 폼 */}
-        <div className="lg:col-span-1">
-          <CouponIssueForm
-            onSubmit={handleCouponIssue}
-            onSuccess={handleIssueSuccess}
-          />
+      {/* 통계 카드 */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.title}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {stat.title}
+              </CardTitle>
+              <stat.icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <p className="text-xs text-muted-foreground">
+                {stat.description}
+              </p>
+              <div className="text-xs text-green-600 mt-1">
+                {stat.trend} from last month
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-          <div className="mt-6 bg-blue-50 p-4 rounded-lg">
-            <h3 className="font-bold text-blue-800 mb-2">RabbitMQ 흐름 설명</h3>
-            <ol className="list-decimal pl-5 text-sm text-blue-700">
-              <li className="mb-1">사용자가 쿠폰 발급을 요청합니다.</li>
-              <li className="mb-1">요청이 RabbitMQ의 요청 큐로 전송됩니다.</li>
-              <li className="mb-1">
-                Worker가 요청을 수신하여 쿠폰을 발급합니다.
-              </li>
-              <li className="mb-1">처리 결과가 응답 큐로 다시 전송됩니다.</li>
-              <li className="mb-1">
-                API 서버가 응답을 수신하여 클라이언트에게 전달합니다.
-              </li>
-            </ol>
-          </div>
-        </div>
+      {/* 빠른 액션 */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>쿠폰 발급</CardTitle>
+            <CardDescription>
+              새로운 쿠폰을 발급하여 사용자에게 혜택을 제공하세요.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/coupon-issue">
+              <Button className="w-full">
+                <Ticket className="mr-2 h-4 w-4" />
+                쿠폰 발급하기
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
 
-        {/* 오른쪽: 쿠폰 목록 */}
-        <div className="lg:col-span-2">
-          {!userId ? (
-            <div className="bg-gray-50 p-6 rounded-lg text-center">
-              <p className="text-gray-500">
-                쿠폰을 발급하면 목록이 여기에 표시됩니다.
+        <Card>
+          <CardHeader>
+            <CardTitle>회원 쿠폰 조회</CardTitle>
+            <CardDescription>
+              회원별 보유 쿠폰과 사용 내역을 확인하세요.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/user-coupons">
+              <Button variant="outline" className="w-full">
+                <Users className="mr-2 h-4 w-4" />
+                쿠폰 조회하기
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* RabbitMQ 시스템 설명 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>시스템 아키텍처</CardTitle>
+          <CardDescription>
+            RabbitMQ를 활용한 비동기 쿠폰 발급 시스템의 동작 방식
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="text-center p-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                <span className="text-blue-600 font-bold">1</span>
+              </div>
+              <h3 className="font-semibold mb-1">요청 수신</h3>
+              <p className="text-sm text-muted-foreground">
+                사용자가 쿠폰 발급을 요청합니다.
               </p>
             </div>
-          ) : (
-            <>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">{userId}님의 쿠폰</h2>
-                <button
-                  onClick={() => fetchCoupons(userId)}
-                  className="btn btn-secondary text-sm"
-                  disabled={loading}
-                >
-                  {loading ? "로딩 중..." : "새로고침"}
-                </button>
+            <div className="text-center p-4">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                <span className="text-green-600 font-bold">2</span>
               </div>
-              <CouponList coupons={coupons} loading={loading} />
-            </>
-          )}
-        </div>
-      </div>
-    </main>
+              <h3 className="font-semibold mb-1">큐 처리</h3>
+              <p className="text-sm text-muted-foreground">
+                RabbitMQ에서 비동기적으로 처리됩니다.
+              </p>
+            </div>
+            <div className="text-center p-4">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                <span className="text-purple-600 font-bold">3</span>
+              </div>
+              <h3 className="font-semibold mb-1">결과 반환</h3>
+              <p className="text-sm text-muted-foreground">
+                처리 결과가 사용자에게 전달됩니다.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
