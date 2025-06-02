@@ -30,3 +30,5 @@ bin/
 /build/
 /.idea/
 /coupon-core/build/
+/.gradle/
+/.idea/

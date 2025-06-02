@@ -1,9 +1,9 @@
 // 쿠폰 상태 열거형
 export enum CouponStatus {
-  ISSUED = 'ISSUED',
-  USED = 'USED',
-  EXPIRED = 'EXPIRED',
-  CANCELLED = 'CANCELLED'
+  ISSUED = "ISSUED",
+  USED = "USED",
+  EXPIRED = "EXPIRED",
+  CANCELLED = "CANCELLED",
 }
 
 // 쿠폰 발급 요청 인터페이스
