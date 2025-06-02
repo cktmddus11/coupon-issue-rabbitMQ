@@ -53,4 +53,9 @@ public class CouponResponse implements Serializable {
 
     @Schema(description = "성공 여부", example = "true")
     private boolean success;
+
+    private LocalDateTime usedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
 }

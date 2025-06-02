@@ -22,10 +22,11 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: true    # JPA 쿼리 콘솔 출력
     properties:
       hibernate:
         format_sql: true
+        use_sql_comments: true                  # 쿼리에 주석 추가
 
   springdoc:
     api-docs:
@@ -58,3 +59,7 @@ logging:
     com.example.coupon: DEBUG
     org.springframework.amqp: DEBUG
     org.springframework.context.annotation: DEBUG # 빈 등록 과정 로깅
+
+    org.hibernate.SQL: DEBUG                    # SQL 쿼리 출력
+    org.hibernate.type.descriptor.sql: TRACE   # 파라미터 값도 출력
+    org.springframework.jdbc.core: DEBUG       # Spring JDBC 쿼리도 출력

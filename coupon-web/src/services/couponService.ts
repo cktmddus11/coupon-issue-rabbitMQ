@@ -1,4 +1,10 @@
-import { CouponRequest, CouponResponse, Coupon } from "@/types/coupon";
+import {
+  CouponRequest,
+  CouponResponse,
+  Coupon,
+  PageRequest,
+  CouponPageResponse,
+} from "@/types/coupon";
 
 // API URL 설정: 환경 변수에서 가져오거나 기본값 사용
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -92,5 +98,32 @@ export const couponService = {
       console.error("유효 쿠폰 목록 조회 중 오류 발생:", error);
       return [];
     }
+  },
+  // 페이징으로 사용자 쿠폰 조회
+  async getUserCouponsWithPaging(
+    userId: string,
+    pageRequest: PageRequest,
+  ): Promise<CouponPageResponse> {
+    const params = new URLSearchParams({
+      page: pageRequest.page.toString(),
+      size: pageRequest.size.toString(),
+      ...(pageRequest.sort && { sort: pageRequest.sort }),
+    });
+
+    const response = await fetch(
+      `${API_BASE_URL}${API_PATH}/coupons/users/${userId}/paged?${params}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
   },
 };

@@ -43,3 +43,24 @@ export interface Coupon {
   usedAt?: string;
   status: CouponStatus;
 }
+
+// 페이징 요청 타입
+export interface PageRequest {
+  page: number;
+  size: number;
+  sort?: string;
+}
+
+// 페이징 응답 타입
+export interface PageResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+}
+
+// 쿠폰 페이징 응답 타입
+export type CouponPageResponse = PageResponse<Coupon>;

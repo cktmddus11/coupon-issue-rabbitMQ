@@ -47,6 +47,10 @@ public class Coupon {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CouponStatus status;  // 쿠폰 상태
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
     
     // 쿠폰 발급 전 초기화 메서드
     public void initialize() {

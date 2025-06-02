@@ -2,9 +2,11 @@ package com.example.coupon.api;
 
 import com.example.coupon.dto.CouponRequest;
 import com.example.coupon.dto.CouponResponse;
+import com.example.coupon.dto.PageResponse;
 import com.example.coupon.entity.Coupon;
 import com.example.coupon.entity.CouponStatus;
 import com.example.coupon.repository.CouponRepository;
+import com.example.coupon.service.CouponSearchService;
 import com.example.coupon.service.RabbitMQSender;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,8 @@ public class CouponApiController {
 
     private final RabbitMQSender rabbitMQSender;
     private final CouponRepository couponRepository;
+
+    private final CouponSearchService couponSearchService;
     
     /**
      * 쿠폰 발급 API
@@ -88,5 +92,16 @@ public class CouponApiController {
         log.info("사용자 유효 쿠폰 목록 조회 - 사용자: {}", userId);
         List<Coupon> coupons = couponRepository.findByUserIdAndStatus(userId, CouponStatus.ISSUED);
         return ResponseEntity.ok(coupons);
+    }
+
+    @GetMapping("/users/{userId}/paged")
+    public ResponseEntity<PageResponse<CouponResponse>> getUserCouponsWithPaging(
+            @PathVariable String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sort) {
+
+        PageResponse<CouponResponse> result = couponSearchService.getUserCouponsWithPaging(userId, page, size, sort);
+        return ResponseEntity.ok(result);
     }
 }

@@ -11,32 +11,53 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Search } from "lucide-react";
-import { Coupon } from "@/types/coupon";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { CouponPageResponse, PageRequest } from "@/types/coupon";
 import { couponService } from "@/services/couponService";
 import CouponList from "@/components/CouponList";
 
 export default function UserCouponsPage() {
   const [userId, setUserId] = useState("");
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [couponData, setCouponData] = useState<CouponPageResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = async (page: number = 0) => {
     if (!userId.trim()) return;
 
     setLoading(true);
     setSearched(true);
+    setCurrentPage(page);
+
     try {
-      const userCoupons = await couponService.getUserCoupons(userId.trim());
-      setCoupons(userCoupons);
+      const pageRequest: PageRequest = {
+        page,
+        size: pageSize,
+        sort: "issuedAt",
+      };
+
+      const result = await couponService.getUserCouponsWithPaging(
+        userId.trim(),
+        pageRequest,
+      );
+      setCouponData(result);
     } catch (error) {
       console.error("쿠폰 조회 실패:", error);
-      setCoupons([]);
+      setCouponData(null);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    handleSearch(newPage);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearch(0); // 새로운 검색은 첫 페이지부터
   };
 
   return (
@@ -56,7 +77,7 @@ export default function UserCouponsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSearch} className="flex gap-4">
+          <form onSubmit={handleSubmit} className="flex gap-4">
             <div className="flex-1">
               <Label htmlFor="userId" className="sr-only">
                 사용자 ID
@@ -82,9 +103,9 @@ export default function UserCouponsPage() {
           <CardHeader>
             <CardTitle>
               {userId}님의 쿠폰 목록
-              {!loading && (
+              {!loading && couponData && (
                 <span className="ml-2 text-sm font-normal text-muted-foreground">
-                  ({coupons.length}개)
+                  (총 {couponData.totalElements}개)
                 </span>
               )}
             </CardTitle>
@@ -93,7 +114,71 @@ export default function UserCouponsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <CouponList coupons={coupons} loading={loading} />
+            <CouponList coupons={couponData?.content || []} loading={loading} />
+
+            {/* 페이징 컨트롤 */}
+            {couponData && couponData.totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6">
+                <div className="text-sm text-muted-foreground">
+                  페이지 {couponData.page + 1} / {couponData.totalPages}
+                  (총 {couponData.totalElements}개 항목)
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={couponData.first || loading}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    이전
+                  </Button>
+
+                  <div className="flex items-center space-x-1">
+                    {Array.from(
+                      { length: Math.min(5, couponData.totalPages) },
+                      (_, i) => {
+                        const pageNum =
+                          Math.max(
+                            0,
+                            Math.min(
+                              couponData.totalPages - 5,
+                              couponData.page - 2,
+                            ),
+                          ) + i;
+
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={
+                              pageNum === couponData.page
+                                ? "default"
+                                : "outline"
+                            }
+                            size="sm"
+                            onClick={() => handlePageChange(pageNum)}
+                            disabled={loading}
+                          >
+                            {pageNum + 1}
+                          </Button>
+                        );
+                      },
+                    )}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={couponData.last || loading}
+                  >
+                    다음
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

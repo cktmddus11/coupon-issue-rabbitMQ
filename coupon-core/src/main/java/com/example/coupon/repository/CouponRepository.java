@@ -2,6 +2,8 @@ package com.example.coupon.repository;
 
 import com.example.coupon.entity.Coupon;
 import com.example.coupon.entity.CouponStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -39,4 +41,11 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
      * @return 조건에 맞는 쿠폰 목록
      */
     List<Coupon> findByUserIdAndStatus(String userId, CouponStatus status);
+
+
+    Page<Coupon> findByUserIdOrderByCreatedAtDesc(String userId, Pageable pageable);
+
+
+    // 상태별 조회도 가능
+    Page<Coupon> findByUserIdAndStatusOrderByCreatedAtDesc(String userId, CouponStatus status, Pageable pageable);
 }
