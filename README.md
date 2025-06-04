@@ -1,6 +1,7 @@
 # RabbitMQ를 활용한 쿠폰 발급 시스템
 
 RabbitMQ의 메시지 큐를 활용하여 비동기적으로 쿠폰을 발급하는 시스템입니다.
+[참고](https://three-handbell-c4f.notion.site/RabbitMQ-20677f05fb34800287a3dba670b6a388?source=copy_link)
 
 ## 프로젝트 구조
 
